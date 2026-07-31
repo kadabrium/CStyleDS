@@ -53,13 +53,13 @@ Include the header for the container you want to use:
 ```
 
 The API is macro-heavy by design. 
-For a list of exposed methods, refer to the short macros at the end of each file.
+For a quick overview of exposed methods, refer to the short macros at the end of each file.
 The usual calling pattern is:
 
-- init: `(container, Type, capacity)`
-- push (existing value): `(container, value)`
-- emplace (literal / compound value): macro variant with forwarded arguments
-- access: `(container, Type, position)`
+- init: `(this, type, capacity)`
+- push (existing value): `(this, value)`
+- emplace (literal / initializer list): `(this, type, expression)`
+- access: `(this, type, position)`
 
 
 ## Usage Examples
@@ -157,15 +157,13 @@ int main(void) {
 ## Design Notes
 
 - Header-only implementation for simple drop-in use
-- Generic behavior is provided through macros and `sizeof(T)`-based storage
-- Containers store values inline (currently all complete ones are void*-array based)
+- Generic behavior is provided through macros and `sizeof(T)`-based void*-array storage
 
 ## Caveats
 
 - This is not a fully type-safe API; misuse of macros or wrong access types is on the caller
-- Returned references and pointers can be invalidated by container growth or mutation
-- Primitive hash-map setup is intended for primitive keys; struct keys should use custom hash/equality helpers
-- Error handling is intentionally minimal and currently does not provide a full failure-reporting layer
+- As usual for dynamic array-based containers, access of raw pointers can be invalidated by resizing.
+- Error handling is intentionally minimal and currently does not provide a dedicated failure-reporting layer
 
 ## Repository Layout
 
@@ -175,5 +173,5 @@ int main(void) {
 
 ## Notes
 
-The examples in this README are intentionally small. For a broader usage sample, see [main.c](main.c).
-AI usage disclosure: documentation and tests mainly AI generated. For source files, AI used for inline debugging only.
+- The examples in this README are intentionally small. For a broader usage sample, see [main.c](main.c).
+- AI usage disclosure: documentation and tests mainly AI generated. For source files, AI used for inline debugging only.

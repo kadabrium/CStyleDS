@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include "_ctypeof.h"
 
-
 // Predefined primitive bytewise hash. 
 // For custom hash, see CHMCustomHash for examples.
 static inline size_t _byteHash(const void* item, size_t itemSize) {
@@ -229,7 +228,6 @@ static inline int _CHMap_remove(CHMap* map, const void* key) {
 #define CHMap_remove(map, keyExpr) \
   _CHMap_remove((map), &(__typeof__(keyExpr)){(keyExpr)})
 #define CHMap_removeObj(map, ...) _CHMap_remove((map), &(__VA_ARGS__))
-
 
 // ordered iteration: start with it = -1, stop when the return value is < 0
 static inline int64_t CHMap_next(CHMap* map, int64_t it, void** keyOut, void** valOut) {

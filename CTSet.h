@@ -289,6 +289,10 @@ void CTSet_removeKey_(CTSet* tree, void* itemPtr) {
   }
 }
 
-void CTSet_nextKey_(CTSet* tree, void* itemPtr) {
+void CTSet_hasNext_(CTSet* tree, void* itemPtr) {
+
+}
+
+void CTSet_getNext_(CTSet* tree, void* itemPtr) {
 
 }

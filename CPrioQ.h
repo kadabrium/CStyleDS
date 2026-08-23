@@ -177,7 +177,7 @@ static inline void* _CPrioQ_pop(CPrioQ* pq) {
   return (char*)pq->data + pq->size * pq->itemSize; 
 }
 #define CPrioQ_pop(pq, T) (*(T*)_CPrioQ_pop(pq))
-#define CPrioQ_front(pq, T) (*(T*)((char*)pq->data))
+#define CPrioQ_front(pq, T) (*(T*)(pq)->data)
 
 static inline void CPrioQ_free(CPrioQ* pq) { free(pq->data); }
 

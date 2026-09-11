@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "_ctypeof.h"
+//#include "_ctypeof.h"
 
 #define _DEF_MAX(name, T) \
   static inline int name(const void* a, const void* b) { \

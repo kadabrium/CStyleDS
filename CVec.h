@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include "_ctypeof.h"
+//#include "_ctypeof.h"
 
 
 typedef struct {

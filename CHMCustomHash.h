@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "CHMap.h"
-#include "_ctypeof.h"
+//#include "_ctypeof.h"
 /*
  * _byteHash / _byteEq operate on an object's representation, not its
  * logical value. CHMap_initPrim intentionally enables them only for the

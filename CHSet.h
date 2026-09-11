@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "_ctypeof.h"
+//#include "_ctypeof.h"
 
 static inline size_t _HS_byteHash(const void* item, size_t itemSize) {
   const unsigned char* bytes = (const unsigned char*)item;
@@ -135,7 +135,7 @@ static inline size_t _CHSet_findSlot(CHSet* map, const void* key, size_t hash, i
     if (ix == _CHSet_DUMMY && !haveFree) {
       haveFree = true; freeslot = i; 
 		} 
-		else if (map->hashes[ix] == hash 
+    else if (map->hashes[ix] == hash 
 		  && map->eq((char*)map->keys + ix * map->keyItemSize, key, map->keyItemSize)) {
 			*existing = ix;
 			return i;

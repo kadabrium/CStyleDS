@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "_ctypeof.h"
+//#include "_ctypeof.h"
 
 // Predefined primitive bytewise hash. 
 // For custom hash, see CHMCustomHash for examples.
@@ -117,6 +117,7 @@ static inline void _CHMap_resize(CHMap* map) {
   size_t j = 0;
   for (size_t e = 0; e < map->nEntries; e++) {
     if (map->hashes[e] == _CHMAP_HOLE) continue;
+
     memcpy((char*)keys + j * map->keyItemSize,
     	(char*)map->keys + e * map->keyItemSize, map->keyItemSize);
     memcpy((char*)values + j * map->valItemSize,
@@ -144,17 +145,19 @@ static inline size_t _CHMap_findSlot(CHMap* map, const void* key, size_t hash, i
     int64_t ix = map->indices[i];
     if (ix == _CHMAP_EMPTY) {
       *existing = -1;
-      return haveFree ? freeslot : i;    // reclaim an earlier tombstone if seen
+      // reclaim an earlier tombstone if seen
+      return haveFree ? freeslot : i;    
     }
-
+    
     if (ix == _CHMAP_DUMMY && !haveFree) {
       haveFree = true; freeslot = i; 
-		} 
-		else if (map->hashes[ix] == hash 
-		  && map->eq((char*)map->keys + ix * map->keyItemSize, key, map->keyItemSize)) {
+		}
+    else if (map->hashes[ix] == hash 
+      && map->eq((char*)map->keys + ix * map->keyItemSize, key, map->keyItemSize)) {
 			*existing = ix;
 			return i;
     }
+
     i = (i * 5 + perturb + 1) & mask;
     perturb >>= 5;
   }

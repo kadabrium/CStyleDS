@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "_ctypeof.h"
+//#include "_ctypeof.h"
 
 typedef struct { 
   void** data;
@@ -15,9 +15,9 @@ typedef struct {
 } CMat;
 
 
-static inline void _CMat_init(CMat* m, size_t itemSize, int rows, int cols) {
+static inline void m_CMat_init(CMat* m, size_t itemSize, int rows, int cols) {
   m->itemSize = itemSize;
-  // Start empty: allocate nothing. The first _push/_addRow grows it.
+  // Start empty: allocate nothing. The first m_push/_addRow grows it.
   if (rows <= 0 || cols <= 0) {
     m->rows = 0; m->rowNumCap = 0;
     m->data = NULL; m->rowLens = NULL; m->rowLenCaps = NULL;
@@ -32,7 +32,7 @@ static inline void _CMat_init(CMat* m, size_t itemSize, int rows, int cols) {
     (m->rowLens)[i] = cols; (m->rowLenCaps)[i] = cols;
   }
 }
-#define CMat_init(m, T, r, c) _CMat_init(m, sizeof(T), r, c)
+#define CMat_init(m, T, r, c) m_CMat_init(m, sizeof(T), r, c)
 #define CMat_data(m, T, r) ((T*)((m)->data[r]))
 #define CMat_at(m, T, r, c) \
   (*(T*)((char*)((m)->data[r]) + ((m)->itemSize * (c))))
@@ -43,7 +43,7 @@ static inline void _CMat_init(CMat* m, size_t itemSize, int rows, int cols) {
 #define CMat_cols(m, r) ((m)->rowLens[r])
 
 
-static inline void _CMat_incRowNumCap(CMat* m, int newCap) {
+static inline void m_CMat_incRowNumCap(CMat* m, int newCap) {
   if (newCap <= m->rowNumCap) return;
   void** nd = (void**)realloc(m->data, sizeof(void*) * newCap);
   if (!nd) return;
@@ -65,7 +65,7 @@ static inline int CMat_addRow(CMat* m, int lenCap) {
   if (lenCap <= 0) { lenCap = 2; }
   if (m->rows == m->rowNumCap) {
     int newCap = m->rowNumCap == 0 ? 2 : (int)ceilf(m->rowNumCap * 1.5f);
-    _CMat_incRowNumCap(m, newCap);
+    m_CMat_incRowNumCap(m, newCap);
   }
   int idx = m->rows; 
   m->data[idx] = malloc(m->itemSize * lenCap);
@@ -74,70 +74,72 @@ static inline int CMat_addRow(CMat* m, int lenCap) {
   return idx;
 }
 
-static inline void _CMat_resizeRow(CMat* m, int row, int newCap) {
+static inline void m_CMat_resizeRow(CMat* m, int row, int newCap) {
   void* tmp = realloc(m->data[row], m->itemSize * newCap);
   if (tmp) { m->data[row] = tmp; m->rowLenCaps[row] = newCap; }
 }
 
-static inline void _CMat_pushToRow(CMat* m, void* itemPtr, int row) {
+static inline void m_CMat_pushToRow(CMat* m, void* itemPtr, int row) {
   if (m->rowLenCaps[row] == 0) {
-    _CMat_resizeRow(m, row, 4); 
+    m_CMat_resizeRow(m, row, 4); 
   } 
   else if (m->rowLens[row] == m->rowLenCaps[row]) {
-    _CMat_resizeRow(m, row, (int)ceilf(m->rowLenCaps[row] * 1.6f));
+    m_CMat_resizeRow(m, row, (int)ceilf(m->rowLenCaps[row] * 1.6f));
   }
   memcpy((char*)(m->data[row]) + (m->rowLens[row] * m->itemSize), itemPtr, m->itemSize);
   (m->rowLens[row])++;
 }
-#define CMat_push(m, r, item) _CMat_pushToRow((m), (void*)&item, (r))
+#define CMat_push(m, r, item) m_CMat_pushToRow((m), (void*)&item, (r))
 
 
-static inline void _CMat_pushLastRow(CMat* m, void* itemPtr) {
-  _CMat_pushToRow(m, itemPtr, m->rows - 1);
+static inline void m_CMat_pushLastRow(CMat* m, void* itemPtr) {
+  m_CMat_pushToRow(m, itemPtr, m->rows - 1);
 }
-#define CMat_pushLast(m, item) _CMat_pushLastRow((m), (void*)&item)
+#define CMat_pushLast(m, item) m_CMat_pushLastRow((m), (void*)&item)
 
+// emplace struct 
 #define CMat_emplAs(m, r, T, ...) \
-  _CMat_pushToRow((m), &(T){__VA_ARGS__}, (r))
+  m_CMat_pushToRow((m), &(T){__VA_ARGS__}, (r))
+// emplace primitive
 #define CMat_empl(m, r, val) \
   do { \
     __typeof__(val) _tmp = (val); \
-    _CMat_pushToRow((m), &_tmp, (r)); \
+    m_CMat_pushToRow((m), &_tmp, (r)); \
   } while (0)
-#define _MEMPL_PICK(_1, _2, _3, _4, _5, _6, _7, _8, _9, NAME, ...) NAME
+#define m_MEMPL_PICK(_1, _2, _3, _4, _5, _6, _7, _8, _9, NAME, ...) NAME
 #define CMat_emplace(...) \
-  _MEMPL_PICK(__VA_ARGS__, \
+  m_MEMPL_PICK(__VA_ARGS__, \
     CMat_emplAs, CMat_emplAs, CMat_emplAs, CMat_emplAs, \
-    CMat_emplAs, CMat_emplAs, CMat_empl, _MEMPL_ERR, _MEMPL_ERR)(__VA_ARGS__)
+    CMat_emplAs, CMat_emplAs, CMat_empl, m_MEMPL_ERR, m_MEMPL_ERR)(__VA_ARGS__)
 
 #define CMat_emplLastAs(m, T, ...) \
-  _CMat_pushLastRow((m), &(T){__VA_ARGS__})
-#define CMat_emplLast(m, r, val) \
+  m_CMat_pushLastRow((m), &(T){__VA_ARGS__})
+#define CMat_emplaceLast(m, r, val) \
   do { \
     __typeof__(val) _tmp = (val); \
-    _CMat_pushLastRow((m), &_tmp); \
+    m_CMat_pushLastRow((m), &_tmp); \
   } while (0)
-#define _MEMPLAST_PICK(_1, _2, _3, _4, _5, _6, _7, _8, _9, NAME, ...) NAME
+#define m_MEMPLAST_PICK(_1, _2, _3, _4, _5, _6, _7, _8, _9, NAME, ...) NAME
 #define CMat_emplLast(...) \
-  _MEMPLAST_PICK(__VA_ARGS__, \
+  m_MEMPLAST_PICK(__VA_ARGS__, \
     CMat_emplLastAs, CMat_emplLastAs, CMat_emplLastAs, CMat_emplLastAs, \
-    CMat_emplLastAs, CMat_emplLastAs, CMat_emplLast, _MEMPL_ERR, _MEMPL_ERR)(__VA_ARGS__)
+    CMat_emplLastAs, CMat_emplLastAs, CMat_emplaceLast, m_MEMPL_ERR, m_MEMPL_ERR)(__VA_ARGS__)
 
     
-static inline void* _CMat_pop(CMat* m, int row) {
+static inline void* m_CMat_pop(CMat* m, int row) {
   if (m->rowLens[row] == 0) return m->data[row];
   (m->rowLens[row])--;
   return (void*)((char*)(m->data[row]) + (m->rowLens[row] * m->itemSize));
 }
-#define CMat_pop(m, T, r) (*(T*)_CMat_pop((m), (r)))
+#define CMat_pop(m, T, r) (*(T*)m_CMat_pop((m), (r)))
 
 
-static inline void* _CMat_popLastRow(CMat* m) {
+static inline void* m_CMat_popLastRow(CMat* m) {
   if (m->rowLens[m->rows - 1] == 0) return m->data[m->rows - 1];
   (m->rowLens[m->rows - 1])--;
   return (void*)((char*)(m->data[m->rows - 1]) + (m->rowLens[m->rows - 1] * m->itemSize));
 }
-#define CMat_popLast(m, T) (*(T*)_CMat_popLastRow(m))
+#define CMat_popLast(m, T) (*(T*)m_CMat_popLastRow(m))
 
 static inline void CMat_free(CMat* m) {
   for (int i = 0; i < m->rows; i++) free(m->data[i]); 
